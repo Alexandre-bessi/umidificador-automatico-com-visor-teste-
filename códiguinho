@@ -1,18 +1,13 @@
-#define DHTTYPE DHT11  // used sensor, DHT11 or DHT22
-#define potPIN A1
-#define mosPIN 2
-#define sensVCC 3
-#define sensDATA 4
-#define sensGND 5
-#define blueLED 11
-#define redLED 12
-#define DHTPIN A5
+#include "DHT.h"
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
 
-#include <LiquidCrystal.h>
-#include <DHT.h>
-DHT dht(sensDATA, DHTTYPE, DHTPIN);
+ const int pino_dht = 9; // pino onde o sensor DHT está conectado
+ float temperatura; // variável para armazenar o valor de temperatura
+ float umidade; // variável para armazenar o valor de umidade
+ DHT dht(pino_dht, DHT11); // define o pino e o tipo de DHT
+ LiquidCrystal_I2C lcd(0x27,16,2);
 
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 byte grau[8] ={ B00001100,
                 B00010010,
@@ -21,72 +16,44 @@ byte grau[8] ={ B00001100,
                 B00000000,
                 B00000000,
                 B00000000,
-                B00000000,};
-
-unsigned long readTimer;
-float hum;
-int pot;
-
+                B00000000,};//Array simbolo grau
+                
 void setup() {
-  // configure pins
-  pinMode(mosPIN, OUTPUT);
-  pinMode(sensVCC, OUTPUT);
-  pinMode(sensGND, OUTPUT);
-  pinMode(blueLED, OUTPUT);
-  pinMode(redLED, OUTPUT);
-  pinMode(sensDATA, INPUT_PULLUP);
-  digitalWrite(mosPIN, 0);
-  digitalWrite(sensVCC, 1);
-  digitalWrite(sensGND, 0);
-  digitalWrite(blueLED, 0);
-  digitalWrite(redLED, 0);
 
-  Serial.begin(9600);
-  lcd.begin(16,2); //Inicializa LCD
-  lcd.clear(); //Limpa o LCD
-//Cria o caractere customizado com o simbolo do grau
-  lcd.createChar(0, grau);
-  dht.begin();
-  dht.begin();
-  delay(1000);
-  hum = dht.readHumidity();
+ Serial.begin(9600); // 9600bps // Inicia e configura a Serial
+ dht.begin(); // inicializa o sensor DHT
+ lcd.init(); //inicializa o lcd
+ lcd.createChar(0, grau); //Cria o caractere customizado com o simbolo do grau
+}
+void loop() {
+
+  delay(2000); //Aguarda alguns segundos entre uma leitura e outra
+
+  temperatura = dht.readTemperature(); // lê a temperatura em Celsius
+  umidade = dht.readHumidity(); // lê a umidade
+
+
+  if (isnan(umidade) || isnan(temperatura)) {
+    Serial.println("Falha na leitura do Sensor DHT!");// Se ocorreu alguma falha durante a leitura
 }
 
-void loop() {
-  pot = analogRead(potPIN) / 10;   // convert pot value to ~0-100 range
-  if (pot > hum) {                 // if set value more than air humidity
-    digitalWrite(mosPIN, 1);       // power on
-    digitalWrite(blueLED, 1);
-    digitalWrite(redLED, 1);
-  } else {                         // if not
-    digitalWrite(mosPIN, 0);       // power off
-    digitalWrite(blueLED, 0);
-    digitalWrite(redLED, 0);
-  }
 
-  if (millis() - readTimer > 1000) {  // 1 second timeout
-    hum = dht.readHumidity();         // get humidity
-    readTimer = millis();
-  }
-  delay (5);
-  
-  
-  float h = dht.readHumidity(); //Le o valor da umidade
-float t = dht.readTemperature(); //Le o valor da temperatura
-lcd.setCursor(0,0);
-lcd.print("Temp : ");
-lcd.print(" ");
-lcd.setCursor(7,0);
-lcd.print(t,1);
-lcd.setCursor(12,0);
-lcd.write((byte)0);
-lcd.setCursor(0,1);
-lcd.print("Umid : ");
-lcd.print(" ");
-lcd.setCursor(7,1);
-lcd.print(h,1);
-lcd.setCursor(12,1);
-lcd.print("%");
-
-  delay(2000);                         // some delay for system stability
+  lcd.setCursor(0,0);
+  lcd.print("Temp : ");
+  lcd.print(" ");
+  lcd.setCursor(7,0);
+  lcd.print(temperatura,1);
+  lcd.setCursor(12,0);
+ 
+  lcd.write((byte)0); //Mostra o simbolo do grau formado pelo array
+  lcd.print((char)223); //Mostra o simbolo do grau quadrado
+ 
+  lcd.setCursor(0,1);
+  lcd.print("Umid : ");
+  lcd.print(" ");
+  lcd.setCursor(7,1);
+  lcd.print(umidade,1);
+  lcd.setCursor(12,1);
+  lcd.print("%");
+  lcd.setBacklight(HIGH);
 }
