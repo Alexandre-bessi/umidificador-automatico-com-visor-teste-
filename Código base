@@ -1,0 +1,59 @@
+#include "DHT.h"
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
+
+ const int pino_dht = 9; // pino onde o sensor DHT está conectado
+ float temperatura; // variável para armazenar o valor de temperatura
+ float umidade; // variável para armazenar o valor de umidade
+ DHT dht(pino_dht, DHT11); // define o pino e o tipo de DHT
+ LiquidCrystal_I2C lcd(0x27,16,2);
+
+
+byte grau[8] ={ B00001100,
+                B00010010,
+                B00010010,
+                B00001100,
+                B00000000,
+                B00000000,
+                B00000000,
+                B00000000,};//Array simbolo grau
+                
+void setup() {
+
+ Serial.begin(9600); // 9600bps // Inicia e configura a Serial
+ dht.begin(); // inicializa o sensor DHT
+ lcd.init(); //inicializa o lcd
+ lcd.createChar(0, grau); //Cria o caractere customizado com o simbolo do grau
+}
+void loop() {
+
+  delay(2000); //Aguarda alguns segundos entre uma leitura e outra
+
+  temperatura = dht.readTemperature(); // lê a temperatura em Celsius
+  umidade = dht.readHumidity(); // lê a umidade
+
+
+  if (isnan(umidade) || isnan(temperatura)) {
+    Serial.println("Falha na leitura do Sensor DHT!");// Se ocorreu alguma falha durante a leitura
+}
+
+
+  lcd.setCursor(0,0);
+  lcd.print("Temp : ");
+  lcd.print(" ");
+  lcd.setCursor(7,0);
+  lcd.print(temperatura,1);
+  lcd.setCursor(12,0);
+ 
+  lcd.write((byte)0); //Mostra o simbolo do grau formado pelo array
+  lcd.print((char)223); //Mostra o simbolo do grau quadrado
+ 
+  lcd.setCursor(0,1);
+  lcd.print("Umid : ");
+  lcd.print(" ");
+  lcd.setCursor(7,1);
+  lcd.print(umidade,1);
+  lcd.setCursor(12,1);
+  lcd.print("%");
+  lcd.setBacklight(HIGH);
+}
