@@ -1,1 +1,1 @@
-Projeto de um humidicador automático utilizando Arduino, ele uutiliza de um sensor de umidade para acionar um mini humidificador
+Projeto de um humidicador automático utilizando Arduino, ele uutiliza de um sensor de umidade para acionar um mini humidificador, ao mesmo tempo, é possível acompanhar uma atualização em tempo real da situação em que a sala se encontra
